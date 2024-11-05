@@ -1,4 +1,5 @@
 import db from '../config/db.mjs';
+import { createFollowTable } from './followModel.mjs';
 
 const createPostTable = async () => {
     try {
@@ -51,11 +52,13 @@ export const createPost = async (userId, content) => {
 export const getAllPosts = async (limit, offset, userId) => {
     await createPostTable();
     await createLikeTable();
+    await createFollowTable();
 
+    // Assuming the follows table is already created
     // Fetch total count of posts
     const [[{ total }]] = await db.query('SELECT COUNT(*) AS total FROM posts');
 
-    // Fetch paginated posts with joined user and like data
+    // Fetch paginated posts with joined user, like, and follow data
     const [posts] = await db.query(
         `
         SELECT posts.*, users.username,
@@ -63,14 +66,19 @@ export const getAllPosts = async (limit, offset, userId) => {
             MAX(CASE 
                 WHEN likes.user_id = ? THEN true 
                 ELSE false 
-            END) AS isLikedByCurrentUser
+            END) AS isLikedByCurrentUser,
+            MAX(CASE 
+                WHEN follows.follower_id = ? THEN true 
+                ELSE false 
+            END) AS isFollowedByCurrentUser
         FROM posts
         JOIN users ON posts.user_id = users.id
         LEFT JOIN likes ON posts.id = likes.post_id
+        LEFT JOIN follows ON users.id = follows.followed_id AND follows.follower_id = ?
         GROUP BY posts.id, users.username
         ORDER BY posts.created_at DESC
         LIMIT ? OFFSET ?`,
-        [userId, limit, offset]
+        [userId, userId, userId, limit, offset]
     );
 
     // Calculate pagination details
@@ -89,6 +97,9 @@ export const getAllPosts = async (limit, offset, userId) => {
         }
     };
 };
+
+
+// export const getAllPosts = async (limit, offset, userId) => {
 //     await createPostTable();
 //     await createLikeTable();
 
@@ -99,6 +110,7 @@ export const getAllPosts = async (limit, offset, userId) => {
 //     const [posts] = await db.query(
 //         `
 //         SELECT posts.*, users.username,
+//             COUNT(likes.id) AS totalLikes,
 //             MAX(CASE 
 //                 WHEN likes.user_id = ? THEN true 
 //                 ELSE false 

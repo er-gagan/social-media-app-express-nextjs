@@ -1,17 +1,18 @@
 import { FC, useState } from 'react';
-import { Card, CardBody, Button as NextUIButton, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@nextui-org/react';
+import { Card, CardBody, Chip, Button as NextUIButton } from '@nextui-org/react';
+import { SlUserFollow, SlUserFollowing } from "react-icons/sl";
+
 import { format } from 'date-fns';
-import { Post } from './types';
 import { HeartIcon, TrashIcon } from '@heroicons/react/16/solid';
 import fetchApi from '@/utils/fetchApi';
 import toast from 'react-hot-toast';
 import Textarea from '../Textarea';
 import Button from '../Button';
 import { useSelector } from 'react-redux';
+import UpdatePost from './UpdatePost';
 
 const PostCard = ({ post, setFlag, flag }: any) => {
     const [postModalIsOpen, setPostModalIsOpen] = useState(false)
-    const [postContent, setPostContent] = useState(post.content)
     const { userData } = useSelector((state: any) => state.Auth)
     const toggleLike = async () => {
         if (post.isLikedByCurrentUser) {
@@ -56,29 +57,6 @@ const PostCard = ({ post, setFlag, flag }: any) => {
         return text;
     };
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault()
-        const response = await fetchApi({
-            endpoint: "/api/posts",
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${localStorage.getItem("token")}`
-            },
-            payload: {
-                content: postContent,
-                postId: post.id
-            }
-        })
-        if (response.status_code === 200) {
-            toast.success(response.message)
-            setPostModalIsOpen(false)
-        } else {
-            toast.error(response.message)
-        }
-        setFlag(!flag)
-    }
-
     const handleDeletePost = async () => {
         const response = await fetchApi({
             endpoint: `/api/posts`,
@@ -100,6 +78,28 @@ const PostCard = ({ post, setFlag, flag }: any) => {
         setFlag(!flag)
     }
 
+    const handleFollowUser = async () => {
+        const response = await fetchApi({
+            endpoint: `/api/users/${post.user_id}/follow`,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem("token")}`
+            }
+        })
+
+        if (response.status_code === 200) {
+            if (post.isFollowedByCurrentUser === 1) {
+                toast.success("You have unfollowed this user")
+            } else {
+                toast.success(response.message)
+            }
+        } else {
+            toast.error(response.message)
+        }
+        setFlag(!flag)
+    }
+
     return (<>
         <Card
             isHoverable
@@ -115,8 +115,20 @@ const PostCard = ({ post, setFlag, flag }: any) => {
                 </div>
                 <div className="flex justify-between flex-wrap">
                     <div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                            Author: {post.username}
+                        <div className="text-ms text-gray-500 dark:text-gray-400 mt-2 " onClick={() => setPostModalIsOpen(true)}>
+                            <b>Author:</b> {post.username} {userData.id === post.user_id ? '(You)' : <Chip
+                                startContent={post.isFollowedByCurrentUser ? <SlUserFollowing size={16} /> : <SlUserFollow size={16} />}
+                                variant="flat"
+                                size='sm'
+                                color="primary"
+                                className='px-4 cursor-pointer hover:underline'
+                                onClick={e => {
+                                    e.stopPropagation()
+                                    handleFollowUser()
+                                }}
+                            >
+                                &nbsp;{post.isFollowedByCurrentUser ? 'Unfollow' : 'Follow'}
+                            </Chip>}
                         </div>
                         <div className="text-sm text-gray-500 dark:text-gray-400">
                             Posted on: {format(new Date(post.created_at), 'dd MMM yyyy')}
@@ -128,7 +140,7 @@ const PostCard = ({ post, setFlag, flag }: any) => {
                         </div>
                     </div>
                 </div>
-                <div className="flex flex-wrap w-full gap-2">
+                <div className="flex flex-wrap sm:flex-nowrap w-full gap-2">
 
                     <NextUIButton
                         variant='flat'
@@ -157,44 +169,13 @@ const PostCard = ({ post, setFlag, flag }: any) => {
                 </div>
             </CardBody>
         </Card>
-
-        <Modal isOpen={postModalIsOpen} onOpenChange={setPostModalIsOpen}>
-            <ModalContent>
-                {(onClose) => (
-                    <>
-                        <form onSubmit={handleSubmit}>
-                            <ModalHeader className="flex flex-col gap-1">
-                                {userData.id === post.user_id ? "Update Post" : "View Post"}
-                            </ModalHeader>
-                            <ModalBody>
-                                {userData.id === post.user_id ? (
-
-                                    <Textarea
-                                        label="Post Content"
-                                        placeholder='Post Content'
-                                        required={true}
-                                        isRequired={true}
-                                        onChange={(e) => setPostContent(e.target.value)}
-                                        value={postContent}
-                                        minRows={15}
-                                    />
-                                ) : (
-                                    <p className="text-gray-500 dark:text-gray-400">
-                                        {post.content}
-                                    </p>
-                                )}
-                            </ModalBody>
-                            <ModalFooter>
-                                <Button type='button' label="Close" color="danger" variant="light" onPress={onClose} />
-                                {userData.id === post.user_id ? (
-                                    <Button type='submit' color="primary" label="Update" />
-                                ) : null}
-                            </ModalFooter>
-                        </form>
-                    </>
-                )}
-            </ModalContent>
-        </Modal>
+        <UpdatePost
+            isOpen={postModalIsOpen}
+            setIsOpen={setPostModalIsOpen}
+            post={post}
+            setFlag={setFlag}
+            flag={flag}
+        />
     </>);
 };
 

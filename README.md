@@ -32,6 +32,10 @@ npm run dev
 
 Please create a database named **socialmedia** manually in your MySQL server.
 
----
 
+# Features
+#### Implemented infinite scroll for posts showing in feed.
+#### logged in user can follow or unfollow other users
+#### user can like or unlike posts
+#### implemented complete CRUD in posts
 That's it!

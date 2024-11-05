@@ -1,6 +1,6 @@
 import db from '../config/db.mjs';
 
-const createFollowTable = async () => {
+export const createFollowTable = async () => {
     try {
         // follower_id  // The user who is following
         // followed_id  // The user being followed
@@ -24,6 +24,21 @@ const createFollowTable = async () => {
 
 export const followUser = async (followerId, followeeId) => {
     await createFollowTable();
+
+    // Check if the user is already following the other user
+    const [existingFollow] = await db.query(
+        'SELECT * FROM follows WHERE follower_id = ? AND followed_id = ?',
+        [followerId, followeeId]
+    );
+    if (existingFollow.length > 0) {
+        // User is already following the other user then unfollow
+        await db.query(
+            'DELETE FROM follows WHERE follower_id = ? AND followed_id = ?',
+            [followerId, followeeId]
+        );
+        return;
+    }
+
     await db.query(
         'INSERT INTO follows (follower_id, followed_id) VALUES (?, ?)',
         [followerId, followeeId]
