@@ -13,12 +13,8 @@ import toast from 'react-hot-toast';
 import { handleResetAuthState } from '@/redux/actions-reducers/auth/auth';
 import fetchApi from '@/utils/fetchApi';
 
-interface NavbarComponentProps {
-    showNavbar: boolean;
-}
-const NavbarComponent = ({ showNavbar, ...rest }: NavbarComponentProps) => {
+const NavbarComponent = () => {
 
-    const [isMenuOpen, setIsMenuOpen] = React.useState(false);
     const { isLoggedIn } = useSelector((state: { Auth: AuthStateType }) => state.Auth)
     const router = useRouter()
     const pathname = usePathname()
@@ -42,28 +38,9 @@ const NavbarComponent = ({ showNavbar, ...rest }: NavbarComponentProps) => {
                 id: 4,
                 name: "Logout",
                 isActive: isLoggedIn === true ? true : false
-            },
-            {
-                id: 5,
-                name: "Profile",
-                path: "/profile",
-                isActive: isLoggedIn === true ? true : false
             }
         ])
     }, [isLoggedIn])
-
-    const menuItems = [
-        "Profile",
-        "Dashboard",
-        "Activity",
-        "Analytics",
-        "System",
-        "Deployments",
-        "My Settings",
-        "Team Settings",
-        "Help & Feedback",
-        "Log Out",
-    ];
 
     const handleItemClick = async (item: { name: string }) => {
         try {
@@ -81,14 +58,13 @@ const NavbarComponent = ({ showNavbar, ...rest }: NavbarComponentProps) => {
             }
         }
     }
-    // return (<></>)
     return (<>
-        <Navbar onMenuOpenChange={setIsMenuOpen} isBordered={true} className={`${showNavbar === false && 'hidden'}`}>
+        <Navbar isBordered={true}>
             <NavbarBrand >
-                <p className="font-bold text-inherit text-xl cursor-pointer" onClick={e => handleNavigation({ path: "/", router })}>Social Media App</p>
+                <p className="font-bold text-inherit text-md sm:text-xl cursor-pointer " onClick={e => handleNavigation({ path: "/", router })}>Social Media App</p>
             </NavbarBrand>
 
-            <NavbarContent justify="end" className="hidden sm:flex">
+            <NavbarContent justify="end" className="">
 
                 {navbarOptions.map((item: any) => {
                     if (item.isActive) {
@@ -96,10 +72,11 @@ const NavbarComponent = ({ showNavbar, ...rest }: NavbarComponentProps) => {
                             {
                                 item.path ?
                                     item.path === pathname ?
-                                        <Button color="primary" variant="flat" label={item.name} />
+                                        <Button color="primary" variant="flat" size="sm" label={item.name} />
                                         :
                                         <Link
                                             href={item.path}
+                                            className='text-sm'
                                             onClick={e => {
                                                 e.preventDefault()
                                                 handleNavigation({ path: item.path, router })
@@ -113,54 +90,8 @@ const NavbarComponent = ({ showNavbar, ...rest }: NavbarComponentProps) => {
                         </NavbarItem>
                     }
                 })}
-                {/* <NavbarItem >
 
-                    {pathname === "/login" ? (
-                        <Button color="primary" variant="flat">
-                            Login
-                        </Button>
-                    ) : <Link href="/login"
-                        onClick={e => {
-                            e.preventDefault()
-                            handleNavigation({ path: "/login", router })
-                        }}
-                    >Login</Link>}
-
-                </NavbarItem>
-                <NavbarItem >
-                    {pathname === "/signup" ? (
-                        <Button color="primary" variant="flat">
-                            Sign Up
-                        </Button>
-                    ) : <Link href="/signup"
-
-                        onClick={e => {
-                            e.preventDefault()
-                            handleNavigation({ path: "/signup", router })
-                        }}
-                    >Sign Up</Link>}
-
-                </NavbarItem> */}
-            </NavbarContent >
-            <NavbarMenuToggle
-                aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-                className="sm:hidden"
-            />
-            <NavbarMenu>
-                {menuItems.map((item, index) => (
-                    <NavbarMenuItem key={`${item}-${index}`}>
-                        <Link
-                            color={
-                                index === 2 ? "primary" : index === menuItems.length - 1 ? "danger" : "foreground"
-                            }
-                            className="w-full"
-                            href="#"
-                        >
-                            {item}
-                        </Link>
-                    </NavbarMenuItem>
-                ))}
-            </NavbarMenu>
+            </NavbarContent>
         </Navbar>
     </>)
 }

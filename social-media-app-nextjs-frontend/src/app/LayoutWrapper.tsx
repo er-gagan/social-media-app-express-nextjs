@@ -18,7 +18,6 @@ const LayoutWrapper = ({
     const dispatch = useDispatch();
     const pathname = usePathname();
     const [baseUrl, setBaseUrl] = useState("");
-    const [showNavbar, setShowNavbar] = useState(true);
 
     useEffect(() => {
         if (window !== undefined) {
@@ -56,7 +55,7 @@ const LayoutWrapper = ({
         <>
             <NextUIProvider>
                 <div className="w-screen h-screen overflow-auto">
-                    <NavbarComponent showNavbar={showNavbar} />
+                    <NavbarComponent />
                     {children}
                 </div>
             </NextUIProvider>
