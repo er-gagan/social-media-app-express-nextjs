@@ -35,24 +35,21 @@ const LayoutWrapper = ({
             if (pathname === location.pathname) {
                 const { origin } = location;
                 setBaseUrl(origin)
+                if (isLoggedIn === true) {
+                    if (private_routes.filter(route => route !== location.pathname).length > 0) {
+                        handleNavigation({ path: "/", router })
+                    }
+                } else {
+                    if (public_routes.filter(route => route !== location.pathname).length > 0) {
+                        handleNavigation({ path: "/login", router })
+                    }
+                }
                 hideLoader()
             } else {
                 showLoader()
             }
         }
-    }, [pathname])
-
-    useEffect(() => {
-        if (isLoggedIn === true) {
-            if (private_routes.filter(route => route !== location.pathname).length > 0) {
-                handleNavigation({ path: "/", router })
-            }
-        } else {
-            if (public_routes.filter(route => route !== location.pathname).length > 0) {
-                handleNavigation({ path: "/login", router })
-            }
-        }
-    }, [isLoggedIn])
+    }, [pathname, isLoggedIn])
 
 
     return (

@@ -14,6 +14,13 @@ const Home = () => {
   const [flag, setFlag] = useState(false)
   const [createPostModalIsOpen, setCreatePostModalIsOpen] = useState(false)
 
+  const handleReset = () => {
+    setPostData([])
+    setCurrentPage(1)
+    setPerPage(10)
+    setTotalPage(1)
+  }
+
   const handleGetAllPosts = async () => {
     try {
       const response = await fetchApi({
@@ -66,6 +73,7 @@ const Home = () => {
 
 
   useEffect(() => {
+    handleReset()
     handleFetchAllPosts()
   }, [flag])
 
