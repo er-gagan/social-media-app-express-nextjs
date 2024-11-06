@@ -4,6 +4,7 @@ import PostList from '@/components/Post/PostList';
 import fetchApi from '@/utils/fetchApi';
 import React, { useEffect, useState } from 'react'
 import CreatePost from '@/components/Post/CreatePost';
+import toast from 'react-hot-toast';
 
 const Home = () => {
   const [postData, setPostData] = useState<any>([])
@@ -14,19 +15,27 @@ const Home = () => {
   const [createPostModalIsOpen, setCreatePostModalIsOpen] = useState(false)
 
   const handleGetAllPosts = async () => {
-    const response = await fetchApi({
-      endpoint: `/api/posts?page=${currentPage}&limit=${perPage}`,
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${localStorage.getItem("token")}`
-      }
-    })
+    try {
+      const response = await fetchApi({
+        endpoint: `/api/posts?page=${currentPage}&limit=${perPage}`,
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        }
+      })
 
-    if (response.status_code === 200) {
-      const data = response.data
-      setPostData([...postData, ...data.posts])
-      setTotalPage(data.pagination.totalPages)
+      if (response.status_code === 200) {
+        const data = response.data
+        setPostData([...postData, ...data.posts])
+        setTotalPage(data.pagination.totalPages)
+      }
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(error.message)
+      } else {
+        toast.error("An unknown error occurred")
+      }
     }
   }
 

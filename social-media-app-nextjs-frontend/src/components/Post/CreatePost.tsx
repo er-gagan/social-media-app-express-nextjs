@@ -9,23 +9,31 @@ const CreatePost = ({ isOpen, setIsOpen, setFlag, flag }: any) => {
     const [postContent, setPostContent] = useState("")
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
-        const response = await fetchApi({
-            endpoint: "/api/posts",
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${localStorage.getItem("token")}`
-            },
-            payload: {
-                content: postContent
+        try {
+            const response = await fetchApi({
+                endpoint: "/api/posts",
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`
+                },
+                payload: {
+                    content: postContent
+                }
+            })
+            if (response.status_code === 201) {
+                toast.success(response.message)
+                setIsOpen(false)
+                setPostContent("")
+            } else {
+                toast.error(response.message)
             }
-        })
-        if (response.status_code === 201) {
-            toast.success(response.message)
-            setIsOpen(false)
-            setPostContent("")
-        } else {
-            toast.error(response.message)
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                toast.error(error.message)
+            } else {
+                toast.error("An unknown error occurred")
+            }
         }
         setFlag(!flag)
     }

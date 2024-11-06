@@ -15,36 +15,44 @@ const PostCard = ({ post, setFlag, flag }: any) => {
     const [postModalIsOpen, setPostModalIsOpen] = useState(false)
     const { userData } = useSelector((state: any) => state.Auth)
     const toggleLike = async () => {
-        if (post.isLikedByCurrentUser) {
-            const response: any = await fetchApi({
-                endpoint: `/api/posts/${post.id}/unlike`,
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${localStorage.getItem("token")}`
-                }
-            })
+        try {
+            if (post.isLikedByCurrentUser) {
+                const response: any = await fetchApi({
+                    endpoint: `/api/posts/${post.id}/unlike`,
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${localStorage.getItem("token")}`
+                    }
+                })
 
-            if (response.status_code === 200) {
-                toast.success(response.message)
+                if (response.status_code === 200) {
+                    toast.success(response.message)
+                } else {
+                    toast.error(response.message)
+                }
+
             } else {
-                toast.error(response.message)
+                const response: any = await fetchApi({
+                    endpoint: `/api/posts/${post.id}/like`,
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${localStorage.getItem("token")}`
+                    }
+                })
+
+                if (response.status_code === 200) {
+                    toast.success(response.message)
+                } else {
+                    toast.error(response.message)
+                }
             }
-
-        } else {
-            const response: any = await fetchApi({
-                endpoint: `/api/posts/${post.id}/like`,
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${localStorage.getItem("token")}`
-                }
-            })
-
-            if (response.status_code === 200) {
-                toast.success(response.message)
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                toast.error(error.message)
             } else {
-                toast.error(response.message)
+                toast.error("An unknown error occurred")
             }
         }
         setFlag(!flag);
@@ -58,44 +66,60 @@ const PostCard = ({ post, setFlag, flag }: any) => {
     };
 
     const handleDeletePost = async () => {
-        const response = await fetchApi({
-            endpoint: `/api/posts`,
-            method: "DELETE",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${localStorage.getItem("token")}`
-            },
-            payload: {
-                id: post.id
-            }
-        })
+        try {
+            const response = await fetchApi({
+                endpoint: `/api/posts`,
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`
+                },
+                payload: {
+                    id: post.id
+                }
+            })
 
-        if (response.status_code === 200) {
-            toast.success(response.message)
-        } else {
-            toast.error(response.message)
+            if (response.status_code === 200) {
+                toast.success(response.message)
+            } else {
+                toast.error(response.message)
+            }
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                toast.error(error.message)
+            } else {
+                toast.error("An unknown error occurred")
+            }
         }
         setFlag(!flag)
     }
 
     const handleFollowUser = async () => {
-        const response = await fetchApi({
-            endpoint: `/api/users/${post.user_id}/follow`,
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${localStorage.getItem("token")}`
-            }
-        })
+        try {
+            const response = await fetchApi({
+                endpoint: `/api/users/${post.user_id}/follow`,
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`
+                }
+            })
 
-        if (response.status_code === 200) {
-            if (post.isFollowedByCurrentUser === 1) {
-                toast.success("You have unfollowed this user")
+            if (response.status_code === 200) {
+                if (post.isFollowedByCurrentUser === 1) {
+                    toast.success("You have unfollowed this user")
+                } else {
+                    toast.success(response.message)
+                }
             } else {
-                toast.success(response.message)
+                toast.error(response.message)
             }
-        } else {
-            toast.error(response.message)
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                toast.error(error.message)
+            } else {
+                toast.error("An unknown error occurred")
+            }
         }
         setFlag(!flag)
     }
