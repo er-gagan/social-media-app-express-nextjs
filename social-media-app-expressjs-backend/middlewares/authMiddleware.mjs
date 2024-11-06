@@ -15,6 +15,6 @@ export const authMiddleware = (req, res, next) => {
         req.user = decoded;
         next();
     } catch (error) {
-        res.status(403).json({ message: 'Invalid token' });
+        res.status(403).json({ status_code: 403, message: 'Invalid token' });
     }
 };

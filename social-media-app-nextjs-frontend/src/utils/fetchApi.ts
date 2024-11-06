@@ -38,9 +38,15 @@ async function fetchApi<T>(options: FetchOptions<T>): Promise<any> {
         // Handle response data type
         const isJsonResponse = response.headers.get("content-type")?.includes("application/json");
         return isJsonResponse ? response.json() : response.text();
-    } catch (error) {
-        console.error("Fetch API Error:", error);
-        throw error;
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            if (error.message === "Invalid token") {
+                localStorage.clear()
+            }
+            console.log(error.message);
+        } else {
+            console.log("An unknown error occurred");
+        }
     }
 }
 

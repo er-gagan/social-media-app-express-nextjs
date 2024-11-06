@@ -1,22 +1,24 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
-import { debounce, hideLoader, showLoader } from "@/utils/utility";
+import { usePathname, useRouter } from "next/navigation";
+import { debounce, handleNavigation, hideLoader, showLoader } from "@/utils/utility";
 import { Toaster } from 'react-hot-toast';
 import { useDispatch, useSelector } from "react-redux";
 import NavbarComponent from "@/components/Navbar";
 import { NextUIProvider } from "@nextui-org/system";
 import { handleCheckUserIsLoggedin, handleGetUserDataRequest } from "@/redux/actions-reducers/auth/auth";
 import 'react-modern-drawer/dist/index.css'
+import { private_routes, public_routes } from "@/route";
 
 const LayoutWrapper = ({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) => {
-
+    const { isLoggedIn } = useSelector((state: any) => state.Auth)
     const dispatch = useDispatch();
     const pathname = usePathname();
+    const router = useRouter()
     const [baseUrl, setBaseUrl] = useState("");
 
     useEffect(() => {
@@ -30,26 +32,28 @@ const LayoutWrapper = ({
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
-
             if (pathname === location.pathname) {
-
                 const { origin } = location;
-
                 setBaseUrl(origin)
-
-                // const superadminPath = `${origin}/superadmin`
-                // const originFullPath = `${origin}${pathname}`
-
-                // if (originFullPath.includes(superadminPath)) {
-                //     setShowNavbar(false)
-                // }
-
                 hideLoader()
             } else {
                 showLoader()
             }
         }
     }, [pathname])
+
+    useEffect(() => {
+        if (isLoggedIn === true) {
+            if (private_routes.filter(route => route !== location.pathname).length > 0) {
+                handleNavigation({ path: "/", router })
+            }
+        } else {
+            if (public_routes.filter(route => route !== location.pathname).length > 0) {
+                handleNavigation({ path: "/login", router })
+            }
+        }
+    }, [isLoggedIn])
+
 
     return (
         <>

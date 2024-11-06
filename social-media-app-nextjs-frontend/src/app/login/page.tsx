@@ -41,18 +41,18 @@ const Login = () => {
             });
             if (response.status_code === 200) {
                 setError('');
-                toast.success(response.message);
+                toast.success(response.message, { id: "copy" });
                 localStorage.setItem('token', response.token);
                 dispatch(handleGetUserDataRequest())
                 handleNavigation({ path: '/', router })
             } else {
-                toast.error(response.message);
+                toast.error(response.message, { id: "copy" });
             }
         } catch (error: unknown) {
             if (error instanceof Error) {
-                toast.error(error.message);
+                toast.error(error.message, { id: "copy" });
             } else {
-                toast.error('An unknown error occurred');
+                toast.error('An unknown error occurred', { id: "copy" });
             }
         }
         setLoad(false);
