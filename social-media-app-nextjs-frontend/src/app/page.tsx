@@ -39,9 +39,39 @@ const Home = () => {
     }
   }
 
+  const handleFetchAllPosts = async () => {
+    try {
+      const response = await fetchApi({
+        endpoint: `/api/posts?page=${currentPage}&limit=${perPage}`,
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        }
+      })
+
+      if (response.status_code === 200) {
+        const data = response.data
+        setPostData(data.posts)
+        setTotalPage(data.pagination.totalPages)
+      }
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(error.message)
+      } else {
+        toast.error("An unknown error occurred")
+      }
+    }
+  }
+
+
+  useEffect(() => {
+    handleFetchAllPosts()
+  }, [flag])
+
   useEffect(() => {
     handleGetAllPosts()
-  }, [flag, currentPage, perPage])
+  }, [currentPage, perPage])
 
   return (<>
     <div className='flex justify-between flex-wrap m-4'>

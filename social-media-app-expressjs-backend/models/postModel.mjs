@@ -13,10 +13,9 @@ const createPostTable = async () => {
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             );
         `);
-        console.log('Post table created or already exists');
+        console.log("Post table created or already exists");
     } catch (error) {
-        console.error('Error creating post table:', error);
-        throw error;
+        return false;
     }
 };
 
@@ -33,15 +32,20 @@ const createLikeTable = async () => {
                 FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
             );
         `);
-        console.log('Like table created or already exists');
+
+        console.log("Like table created or already exists");
     } catch (error) {
-        console.error('Error creating like table:', error);
-        throw error;
+        return false;
     }
 };
 
 export const createPost = async (userId, content) => {
+
     await createPostTable();
+
+    if (!userId || !content) {
+        return false;
+    }
     const [result] = await db.query(
         'INSERT INTO posts (user_id, content, created_at) VALUES (?, ?, NOW())',
         [userId, content]
@@ -98,74 +102,57 @@ export const getAllPosts = async (limit, offset, userId) => {
     };
 };
 
-
-// export const getAllPosts = async (limit, offset, userId) => {
-//     await createPostTable();
-//     await createLikeTable();
-
-//     // Fetch total count of posts
-//     const [[{ total }]] = await db.query('SELECT COUNT(*) AS total FROM posts');
-
-//     // Fetch paginated posts with joined user and like data
-//     const [posts] = await db.query(
-//         `
-//         SELECT posts.*, users.username,
-//             COUNT(likes.id) AS totalLikes,
-//             MAX(CASE 
-//                 WHEN likes.user_id = ? THEN true 
-//                 ELSE false 
-//             END) AS isLikedByCurrentUser
-//         FROM posts
-//         JOIN users ON posts.user_id = users.id
-//         LEFT JOIN likes ON posts.id = likes.post_id
-//         GROUP BY posts.id, users.username
-//         ORDER BY posts.created_at DESC
-//         LIMIT ? OFFSET ?`,
-//         [userId, limit, offset]
-//     );
-
-//     // Calculate pagination details
-//     const currentPage = Math.floor(offset / limit) + 1;
-//     const totalPages = Math.ceil(total / limit);
-
-//     // Return posts along with pagination details
-//     return {
-//         posts,
-//         pagination: {
-//             total,
-//             currentPage,
-//             totalPages,
-//             limit,
-//             offset
-//         }
-//     };
-// };
-
 export const likePost = async (userId, postId) => {
     await createLikeTable();
-    await db.query(
-        'INSERT INTO likes (user_id, post_id) VALUES (?, ?)',
-        [userId, postId]
-    );
+    if (userId && postId) {
+        const [existingLike] = await db.query(
+            'SELECT * FROM likes WHERE user_id = ? AND post_id = ?',
+            [userId, postId]
+        );
+        if (existingLike.length > 0) {
+            return false;
+        }
+
+        const [result] = await db.query(
+            'INSERT INTO likes (user_id, post_id) VALUES (?, ?)',
+            [userId, postId]
+        );
+        return result.affectedRows > 0;
+    } else {
+        return false;
+    }
 };
 
 export const unlikePost = async (userId, postId) => {
     await createLikeTable();
-    await db.query(
-        'DELETE FROM likes WHERE user_id = ? AND post_id = ?',
-        [userId, postId]
-    );
+    if (userId && postId) {
+        const [result] = await db.query(
+            'DELETE FROM likes WHERE user_id = ? AND post_id = ?',
+            [userId, postId]
+        );
+        return result.affectedRows > 0;
+    } else {
+        return false;
+    }
 };
 
 export const updatePostContent = async (postId, content) => {
     await createPostTable();
-    await db.query(
+    if (!postId || !content) {
+        return false;
+    }
+    const [result] = await db.query(
         'UPDATE posts SET content = ?, updated_at = NOW() WHERE id = ?',
         [content, postId]
     );
+    return result.affectedRows > 0;
 };
 
 export const deletePostById = async (postId) => {
     await createPostTable();
-    await db.query('DELETE FROM posts WHERE id = ?', [postId]);
+    if (!postId) {
+        return false;
+    }
+    const [result] = await db.query('DELETE FROM posts WHERE id = ?', [postId]);
+    return result.affectedRows > 0;
 };
