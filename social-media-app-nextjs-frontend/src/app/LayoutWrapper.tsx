@@ -36,11 +36,12 @@ const LayoutWrapper = ({
                 const { origin } = location;
                 setBaseUrl(origin)
                 if (isLoggedIn === true) {
-                    if (private_routes.filter(route => route !== location.pathname).length > 0) {
-                        handleNavigation({ path: "/", router })
-                    }
+                    // if (private_routes.filter(route => route !== location.pathname).length > 0) {
+                    handleNavigation({ path: "/", router })
+                    // }
                 } else {
-                    if (public_routes.filter(route => route !== location.pathname).length > 0) {
+                    // console.log("location.pathname", location.pathname);
+                    if (public_routes.includes(location.pathname) === false) {
                         handleNavigation({ path: "/login", router })
                     }
                 }
